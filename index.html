@@ -3,50 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Important Information</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Redirecting...</title>
+    <meta name="robots" content="noindex, nofollow">
     <style>
         body {
             font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
+            text-align: center;
             padding: 20px;
+            background-color: #f0f0f0;
         }
-        h1 {
-            color: #2c3e50;
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <h1>Important Information</h1>
-    <p>This page contains important information about our services. Please read carefully.</p>
-    <div id="content">
-        <p>Our commitment to providing excellent service remains unwavering. We continuously strive to improve and adapt to meet the evolving needs of our valued customers.</p>
-        <p>For the latest updates and announcements, please check our official channels regularly.</p>
-    </div>
+    <h1>Redirecting...</h1>
+    <div class="loader"></div>
+    <p id="status">You will be redirected shortly.</p>
+    <a id="redirect-link" href="#" style="display: none;">Click here if not redirected</a>
+
     <script>
     (function() {
-        function isBot() {
-            return /bot|googlebot|crawler|spider|robot|crawling/i.test(navigator.userAgent);
-        }
-        
-        function decodeAndRedirect() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var encodedUrl = urlParams.get('d');
-            if (encodedUrl) {
-                try {
-                    var decodedUrl = atob(encodedUrl);
-                    window.location.replace(decodedUrl);
-                } catch (e) {
-                    console.error('Invalid URL', e);
-                }
+        function decodeAndValidateUrl(encodedUrl) {
+            try {
+                const decodedUrl = atob(encodedUrl);
+                return new URL(decodedUrl).href;
+            } catch (e) {
+                console.error('Invalid URL', e);
+                return null;
             }
         }
-        
-        if (!isBot()) {
-            decodeAndRedirect();
+
+        function safeRedirect(url) {
+            if (url) {
+                document.getElementById('redirect-link').href = url;
+                document.getElementById('redirect-link').style.display = 'inline';
+                
+                // Add meta refresh tag
+                var meta = document.createElement('meta');
+                meta.httpEquiv = "refresh";
+                meta.content = "0;url=" + url;
+                document.getElementsByTagName('head')[0].appendChild(meta);
+
+                // Attempt JavaScript redirect
+                window.location.href = url;
+            } else {
+                document.getElementById('status').textContent = 'Invalid destination. Please check the URL.';
+            }
         }
+
+        function handleRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedDestination = urlParams.get('d');
+            
+            if (encodedDestination) {
+                const destinationUrl = decodeAndValidateUrl(encodedDestination);
+                if (destinationUrl) {
+                    safeRedirect(destinationUrl);
+                } else {
+                    document.getElementById('status').textContent = 'Invalid destination URL.';
+                }
+            } else {
+                document.getElementById('status').textContent = 'No destination specified.';
+            }
+        }
+
+        // Run the redirect logic
+        handleRedirect();
     })();
     </script>
 </body>
