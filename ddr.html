@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Redirecting...</title>
+    <meta name="robots" content="noindex, nofollow">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 90%;
+            width: 400px;
+        }
+        h1 { margin-top: 0; }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #redirect-link {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        #redirect-link:hover {
+            background-color: #0056b3;
+        }
+        .error { color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container" role="main">
+        <h1>Fetching File from Google's Servers</h1>
+		<br>
+		<br>
+		<h3>Please Wait</h3>
+        <div class="loader" role="progressbar" aria-label="Redirecting"></div>
+        <p id="status">You will be redirected shortly.</p>
+        <a id="redirect-link" href="#" role="button" tabindex="0">Please wait...</a>
+    </div>
+    <script>
+    (function() {
+        const statusElement = document.getElementById('status');
+        const redirectLink = document.getElementById('redirect-link');
+        const loader = document.querySelector('.loader');
+
+        function decodeAndValidateUrl(encodedUrl) {
+            try {
+                // Try Base64 decoding first
+                const decodedUrl = atob(encodedUrl);
+                return validateUrl(decodedUrl);
+            } catch (e) {
+                // If Base64 decoding fails, try using the URL as-is
+                return validateUrl(encodedUrl);
+            }
+        }
+
+        function validateUrl(url) {
+            try {
+                const parsedUrl = new URL(url);
+                return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:' ? parsedUrl.href : null;
+            } catch (e) {
+                console.error('Invalid URL', e);
+                return null;
+            }
+        }
+
+        function incrementClickCounter(destinationUrl) {
+            let clicks = localStorage.getItem('redirectClicks') || 0;
+            clicks = parseInt(clicks) + 1;
+            localStorage.setItem('redirectClicks', clicks);
+            
+            // Append click count to destination URL
+            let url = new URL(destinationUrl);
+            url.searchParams.set('clicks', clicks);
+            return url.toString();
+        }
+
+        function safeRedirect(url) {
+            if (url) {
+                const updatedUrl = incrementClickCounter(url);
+                redirectLink.href = updatedUrl;
+                setTimeout(() => {
+                    window.location.href = updatedUrl;
+                }, Math.floor(Math.random() * 1000) + 1000); // Random delay between 1-2 seconds
+            } else {
+                statusElement.textContent = 'Invalid destination. Please check the URL.';
+                statusElement.className = 'error';
+                loader.style.display = 'none';
+                redirectLink.style.display = 'none';
+            }
+        }
+
+        function handleErrors(error) {
+            console.error('Redirect error:', error);
+            statusElement.textContent = 'An error occurred. Please try again later.';
+            statusElement.className = 'error';
+            loader.style.display = 'none';
+            redirectLink.style.display = 'none';
+        }
+
+        try {
+            const urlParam = new URLSearchParams(window.location.search).get('d');
+            if (!urlParam) throw new Error('No URL parameter provided');
+            
+            const destinationUrl = decodeAndValidateUrl(urlParam);
+            safeRedirect(destinationUrl);
+        } catch (error) {
+            handleErrors(error);
+        }
+
+        // Fallback for browsers with JavaScript disabled
+        redirectLink.addEventListener('click', function(event) {
+            if (this.href === '#') {
+                event.preventDefault();
+                statusElement.textContent = 'JavaScript is required for redirection.';
+                statusElement.className = 'error';
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
