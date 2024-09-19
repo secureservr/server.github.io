@@ -52,11 +52,7 @@
 
         function decodeAndValidateUrl(encodedUrl) {
             try {
-                // Add padding to the Base64 string if necessary
-                while (encodedUrl.length % 4) {
-                    encodedUrl += '=';
-                }
-                const decodedUrl = atob(encodedUrl.replace(/-/g, '+').replace(/_/g, '/'));
+                const decodedUrl = atob(encodedUrl);
                 return validateUrl(decodedUrl);
             } catch (e) {
                 console.error('Invalid Base64 URL', e);
@@ -78,7 +74,10 @@
             if (url) {
                 redirectLink.href = url;
                 redirectLink.style.display = 'inline';
-                window.location.href = url;
+                // Use setTimeout to ensure the redirect happens after a short delay
+                setTimeout(() => {
+                    window.top.location.href = url;
+                }, 100);
             } else {
                 statusElement.textContent = 'Invalid destination. Please check the URL.';
                 redirectLink.style.display = 'none';
@@ -92,14 +91,7 @@
             if (encodedDestination) {
                 const destinationUrl = decodeAndValidateUrl(encodedDestination);
                 if (destinationUrl) {
-                    // Append any additional query parameters
-                    const additionalParams = Array.from(urlParams.entries())
-                        .filter(([key]) => key !== 'd')
-                        .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-                        .join('&');
-                    
-                    const finalUrl = additionalParams ? `${destinationUrl}${destinationUrl.includes('?') ? '&' : '?'}${additionalParams}` : destinationUrl;
-                    safeRedirect(finalUrl);
+                    safeRedirect(destinationUrl);
                 } else {
                     statusElement.textContent = 'Invalid destination URL.';
                 }
@@ -108,8 +100,17 @@
             }
         }
 
-        // Initiate redirect process
-        handleRedirect();
+        // Check if the page is in an iframe
+        if (window.self !== window.top) {
+            // If in an iframe, attempt to break out and redirect
+            window.top.location.href = window.location.href;
+        } else {
+            // If not in an iframe, proceed with normal redirect
+            handleRedirect();
+        }
+
+        // Fallback: If the iframe breakout doesn't work, still try to redirect after a short delay
+        setTimeout(handleRedirect, 500);
     })();
     </script>
 </body>
